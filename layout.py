@@ -32,13 +32,13 @@ app.layout = html.Div([
             style={'display': 'inline-block', 'width': '33%'}
         ),
         html.Div(
-            daq.Slider(
+            dcc.Slider(
                 id='minimum_games_played_slider',
                 min=0,
                 max=np.max(total_df_with_salaries['games_played']), #change this later
                 step=1,
-                value=0,
-                marks={i: str(i) for i in range(np.max(total_df_with_salaries['games_played'])+1)}
+                value=0
+                #marks={i: str(i) for i in range(np.max(total_df_with_salaries['games_played'])+1)}
             ),
             style={'display': 'inline-block', 'width': '33%'}
         ),
