@@ -7,7 +7,7 @@ import dash_daq as daq
 import numpy as np
 import pandas as pd
 
-total_df_with_salaries = pd.read_csv('C:/Users/ssharma2/Desktop/fantasybball/total_df_with_salaries.csv')
+total_df_with_salaries = pd.read_csv('https://raw.githubusercontent.com/sumeshsharma1/fantasybball/master/total_df_with_salaries.csv')
 total_df_with_salaries['2019-20'].replace('[\$,]', '', regex=True).astype(float)
 
 def normalize(array):
