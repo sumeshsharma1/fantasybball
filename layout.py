@@ -16,6 +16,8 @@ def normalize(array):
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+server = app.server
+app.title = 'God please let this work'
 
 
 app.layout = html.Div([
@@ -30,7 +32,7 @@ app.layout = html.Div([
             style={'display': 'inline-block', 'width': '33%'}
         ),
         html.Div(
-            dcc.Slider(
+            daq.Slider(
                 id='minimum_games_played_slider',
                 min=0,
                 max=np.max(total_df_with_salaries['games_played']), #change this later
