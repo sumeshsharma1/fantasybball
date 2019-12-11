@@ -3,11 +3,12 @@ from dash.dependencies import Input, Output
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_table
-import dash_daq as daq
 import numpy as np
 import pandas as pd
+from baseDataCreation import create_base_df
 
-total_df_with_salaries = pd.read_csv('https://raw.githubusercontent.com/sumeshsharma1/fantasybball/master/total_df_with_salaries.csv')
+total_df_with_salaries = create_base_df(season_year=2020)
+#total_df_with_salaries = pd.read_csv('https://raw.githubusercontent.com/sumeshsharma1/fantasybball/master/total_df_with_salaries.csv')
 total_df_with_salaries['2019-20'].replace('[\$,]', '', regex=True).astype(float)
 
 def normalize(array):
