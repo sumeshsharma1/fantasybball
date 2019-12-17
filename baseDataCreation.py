@@ -34,7 +34,7 @@ def create_base_df(season_year):
         lambda x: unicodedata.normalize('NFD', x).encode('ascii', 'ignore').decode('UTF-8').replace(".", ""))
     total_df.no_accents[total_df.no_accents == 'Taurean Waller-Prince'] = 'Taurean Prince'
 
-    salaries = pd.read_csv("C:/Users/ssharma2/Desktop/nba_beta_salary.csv", sep=",", engine='python')
+    salaries = pd.read_csv("nba_beta_salary.csv", sep=",", engine='python')
 
     total_df_with_salaries = total_df.join(salaries[['slug', '2019-20']].set_index('slug'), on='slug').dropna()
 
