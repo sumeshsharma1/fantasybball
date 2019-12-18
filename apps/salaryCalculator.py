@@ -30,7 +30,7 @@ layout = html.Div([
         html.Div(
             dcc.Dropdown(
                 id='player-name-dropdown',
-                options=[{'label': str(name), 'value': str(name)} for name in df['no_accents']],
+                options=[{'label': str(name), 'value': str(name)} for name in df['Player']],
                 value='Brook Lopez',
                 multi=True
             ),
@@ -61,7 +61,7 @@ layout = html.Div([
 
 def generate_salary_table(player_name):
     dff = pd.DataFrame(columns=['Player', 'Salary'])
-    for player in df['no_accents']:
+    for player in df['Player']:
         if player in player_name:
             dff = pd.concat([dff, df_two_col[df_two_col['Player'] == player]])
 
