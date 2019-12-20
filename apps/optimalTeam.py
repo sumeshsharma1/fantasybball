@@ -1,58 +1,33 @@
-import dash
-from dash.dependencies import Input, Output
 import dash_core_components as dcc
 import dash_html_components as html
-import dash_table
+import dash_table as dt
+from dash.dependencies import Input, Output
+from dash.exceptions import PreventUpdate
 import numpy as np
 import pandas as pd
+import locale
+
 from baseDataCreation import create_base_df
+from espnQuery import espn_fantasy_pull, espn_team_pull
+from calculateOptimalTeam import calculate_optimal_team
 from app import app
 
-total_df_with_salaries = create_base_df(season_year=2020)
-#total_df_with_salaries = pd.read_csv('https://raw.githubusercontent.com/sumeshsharma1/fantasybball/master/total_df_with_salaries.csv')
-total_df_with_salaries['2019-20'].replace('[\$,]', '', regex=True).astype(float)
+locale.setlocale( locale.LC_ALL, 'English_United States.1252' )
+
+df = create_base_df(season_year=2020)
+#df['salary'] = df['2019-20']
+player_list = espn_fantasy_pull(year = 2020, leagueid=22328189)
+team_dict = espn_team_pull(year = 2020, leagueid=22328189)
+team_list = list(team_dict.keys())
 
 def normalize(array):
     return np.asarray([float(i)/np.max(array) for i in array])
 
-
 layout = html.Div([
-    html.H3('Player Data Table'),
-    dcc.Link('Go to salary calculator', href='/salaryCalculator'),
+    html.H3('Team Optimizer'),
+    dcc.Link('Go to player table', href='/'),
     html.Br(),
-    dcc.Link('Go to team optimizer', href='/optimalTeam'),
-    html.Div([
-        html.Div(
-            dcc.RangeSlider(
-                id='minutes_percentile_slider',
-                min=0,
-                max=100,
-                step=1
-            ),
-            style={'display': 'inline-block', 'width': '33%'}
-        ),
-        html.Div(
-            dcc.Slider(
-                id='minimum_games_played_slider',
-                min=0,
-                max=np.max(total_df_with_salaries['games_played']), #change this later
-                step=1,
-                value=0
-                #marks={i: str(i) for i in range(np.max(total_df_with_salaries['games_played'])+1)}
-            ),
-            style={'display': 'inline-block', 'width': '33%'}
-        ),
-        html.Div(
-            dcc.RangeSlider(
-                id='salary_percentile_slider',
-                min=0,
-                max=41000000,
-                step=1000000,
-                value=[0, 41000000]
-            ),
-            style={'display': 'inline-block', 'width': '33%'}
-        )
-    ]),
+    dcc.Link('Go to salary calculator', href='/salaryCalculator'),
     dcc.Checklist(
         id='checklist-options',
         options=[
@@ -191,20 +166,79 @@ layout = html.Div([
             style={'display': 'inline-block', 'width': '11%'}
         )
     ]),
-    # dash_table.DataTable(
-    #     id='table-filtering-be',
-    #     columns=[{'name': i, "id": i} for i in total_df_with_salaries.columns],
-    #     data=total_df_with_salaries.to_dict('records'),
-    #     sort_action="native"
-    # ),
-    html.Div(
-        id='table-filtering-be',
-        className='tableDiv'
-    )
+    html.Div([
+        html.Div(
+            dcc.Dropdown(
+                id='inclusion-list-dropdown',
+                options=[{'label': str(name), 'value': str(name)} for name in df['no_accents']],
+                placeholder="Select players you wish to include in your team calculation.",
+                multi=True
+            ),
+            style={'width': '48%'}
+        ),
+        html.Div(
+            dcc.Dropdown(
+                id='exclusion-list-dropdown',
+                options=[{'label': str(name), 'value': str(name)} for name in df['no_accents']],
+                placeholder='Select players you wish to exclude in your team calculation.',
+                multi=True
+            ),
+            style={'width': '48%'}
+        )
+    ], style={'display': 'flex', 'justify-content': 'space-between'}),
+    html.Div([
+        html.Div(
+            dcc.Checklist(
+                id='fantasy-league-checklist',
+                options=[
+                    {'label': 'Exclude players in my fantasy league', 'value': 'fantasy_exclusion'}
+                ],
+                value=[
+                    'fantasy_exclusion'
+                ]
+            )
+        ),
+        html.Div(
+            dcc.Dropdown(
+                id='espn-team-name',
+                options=[{'label': str(team), 'value': str(team)} for team in team_list],
+                placeholder='Fantasy Team'
+            ),
+            style={'width': '20%'}
+        ),
+        html.Div(
+            dcc.Dropdown(
+                id='number-players-dropdown',
+                options=[
+                    {'label': '10', 'value': '10'},
+                    {'label': '11', 'value': '11'},
+                    {'label': '12', 'value': '12'},
+                    {'label': '13', 'value': '13'}
+                ],
+                placeholder='How many players on your team?'
+            ),
+            style={'width': '30%'}
+        )
+    ], style={'display': 'flex', 'justify-content': 'space-between'}),
+    html.Br(),
+    html.Div([
+        html.Button('Calculate', id='calculation-button')
+    ], style={'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}),
+    html.Br(),
+    html.Div([
+        dcc.Loading(
+            id='loading-1',
+            children=html.Div(
+                id='solutions-table',
+                className='tableDiv'
+            ),
+            type='circle'
+        )
+    ])
 ])
 
 @app.callback(
-    Output('table-filtering-be', 'children'),
+    Output('solutions-table', 'children'),
     [Input('fg-weighting', 'value'),
      Input('ft-weighting', 'value'),
      Input('3p-weighting', 'value'),
@@ -214,9 +248,30 @@ layout = html.Div([
      Input('blk-weighting', 'value'),
      Input('to-weighting', 'value'),
      Input('ppg-weighting', 'value'),
-     Input('checklist-options', 'value')])
-def update_table(fg_value, ft_value, three_point_value, rebs, asts, stls, blks,
-    tos, ppg, checklist_options):
+     Input('checklist-options', 'value'),
+     Input('fantasy-league-checklist', 'value'),
+     Input('number-players-dropdown', 'value'),
+     Input('exclusion-list-dropdown', 'value'),
+     Input('inclusion-list-dropdown', 'value'),
+     Input('espn-team-name', 'value'),
+     Input('calculation-button', 'n_clicks')])
+
+def create_solution_table(fg_value, ft_value, three_point_value, rebs, asts, stls, blks,
+    tos, ppg, checklist_options, fleague, number_players, exclusion_list, inclusion_list,
+    fantasy_team, calculation_clicks):
+    print(calculation_clicks)
+    if exclusion_list is None:
+        exclusion_list = []
+    if inclusion_list is None:
+        inclusion_list = []
+    if fleague:
+        fantasy_players = espn_fantasy_pull(year = 2020, leagueid=22328189)
+        if fantasy_team:
+            exclusion_list += list(set(fantasy_players) - set(team_dict[fantasy_team]))
+        else:
+            exclusion_list += fantasy_players
+    print(exclusion_list)
+    print(len(exclusion_list))
     weight_dict = {
         'field_goal_percentage': float(fg_value[:-1]),
         'free_throw_percentage': float(ft_value[:-1]),
@@ -228,31 +283,37 @@ def update_table(fg_value, ft_value, three_point_value, rebs, asts, stls, blks,
         'turnovers': float(tos[:-1]),
         'ppg': float(ppg[:-1])
     }
-    temp_table = total_df_with_salaries
+    temp_table = df
     temp_table['ppg'] = temp_table.ppg.round(1)
-    temp_table['true_shooting_percentage'] = temp_table.true_shooting_percentage.round(1)
     temp_table['raw_score'] = 0
     for option in checklist_options:
         if option == 'turnovers':
             temp_table['raw_score'] -= normalize(temp_table[option])*weight_dict[option]
         else:
             temp_table['raw_score'] += normalize(temp_table[option])*weight_dict[option]
-    temp_table['raw_score'] = (normalize(temp_table['raw_score'])*100).round(2)
-    temp_table_cols = [{'name': i, 'id': i} for i in temp_table.columns]
-    return html.Div([
-        dash_table.DataTable(
-            id='main-table',
-            columns=temp_table_cols,
-            data=temp_table.to_dict('rows'),
-            sort_action="native",
-            fixed_columns={ 'headers': True, 'data': 1 },
-            style_cell={
-                'minWidth': '100px', 'width': '200px', 'maxWidth': '300px'
-            },
-            style_table={
-                'maxHeight': '800px',
-                'maxWidth': '2000px',
-                'overflowY': 'scroll'
-            }
-        )
-    ])
+
+    temp_table_col_list = ['name', 'field_goal_percentage', 'free_throw_percentage', 'made_three_point_field_goals',
+        'rebounds', 'assists', 'steals', 'blocks', 'turnovers', 'ppg', 'salary', 'raw_score']
+    temp_table_cols = [{'name': i, 'id': i} for i in temp_table_col_list]
+
+    if calculation_clicks is None or number_players is None:
+        raise PreventUpdate
+    else:
+        scores = temp_table['raw_score'].to_numpy()
+        sals = temp_table['2019-20'].replace('[\$,]', '', regex=True).astype(float).to_numpy()
+        names = temp_table['no_accents'].to_numpy()
+        optimal_team = calculate_optimal_team(slots=int(number_players), max_cost=1100,
+            exclusion_list=exclusion_list, inclusion_list=list(set(inclusion_list) - set(exclusion_list)),
+            scores=scores, sals=sals, names=names)
+        optimal_team_table = temp_table[temp_table['no_accents'].isin(optimal_team)]
+        optimal_team_table = optimal_team_table.rename(columns={"2019-20": "salary"})
+        optimal_team_table = optimal_team_table[['name', 'field_goal_percentage', 'free_throw_percentage', 'made_three_point_field_goals',
+            'rebounds', 'assists', 'steals', 'blocks', 'turnovers', 'ppg', 'salary', 'raw_score']]
+        optimal_team_table['raw_score'] = optimal_team_table['raw_score'].round(2)
+        return html.Div([
+            dt.DataTable(
+                id='optimal-results-table',
+                columns=temp_table_cols,
+                data=optimal_team_table.to_dict('rows')
+            )
+        ])

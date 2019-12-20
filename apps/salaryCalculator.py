@@ -26,6 +26,9 @@ empty_df = pd.DataFrame(columns=['Player', 'Salary'])
 
 layout = html.Div([
     html.H3('Salary Calculator'),
+    dcc.Link('Go to player table', href='/'),
+    html.Br(),
+    dcc.Link('Go to team optimizer', href='/optimalTeam'),
     html.Div([
         html.Div(
             dcc.Dropdown(
