@@ -282,6 +282,8 @@ def create_solution_table(fg_value, ft_value, three_point_value, rebs, asts, stl
         'ppg': float(ppg[:-1])
     }
     temp_table = df
+    temp_table.loc[temp_table['attempted_field_goals'] <= np.percentile(temp_table['attempted_field_goals'], 25), ['field_goal_percentage']] = 0
+    temp_table.loc[temp_table['attempted_free_throws'] <= np.percentile(temp_table['attempted_free_throws'], 25), ['free_throw_percentage']] = 0
     temp_table['ppg'] = temp_table.ppg.round(1)
     temp_table['raw_score'] = 0
     for option in checklist_options:
