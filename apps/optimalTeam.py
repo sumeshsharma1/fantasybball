@@ -308,10 +308,37 @@ def create_solution_table(fg_value, ft_value, three_point_value, rebs, asts, stl
         optimal_team_table = optimal_team_table[['name', 'field_goal_percentage', 'free_throw_percentage', 'made_three_point_field_goals',
             'rebounds', 'assists', 'steals', 'blocks', 'turnovers', 'ppg', 'salary', 'raw_score']]
         optimal_team_table['raw_score'] = optimal_team_table['raw_score'].round(2)
+        total_row = pd.DataFrame([[
+            'Total',
+            optimal_team_table['field_goal_percentage'].mean().round(1),
+            optimal_team_table['free_throw_percentage'].mean().round(1),
+            optimal_team_table['made_three_point_field_goals'].sum(),
+            optimal_team_table['rebounds'].sum(),
+            optimal_team_table['assists'].sum(),
+            optimal_team_table['steals'].sum(),
+            optimal_team_table['blocks'].sum(),
+            optimal_team_table['turnovers'].sum(),
+            optimal_team_table['ppg'].mean().round(1),
+            '${:,.2f}'.format(optimal_team_table['salary'].str[1:].str.replace(",", "").astype(float).sum()),
+            optimal_team_table['raw_score'].sum().round(2)
+        ]],
+        columns = [
+            'name', 'field_goal_percentage', 'free_throw_percentage', 'made_three_point_field_goals',
+                'rebounds', 'assists', 'steals', 'blocks', 'turnovers', 'ppg', 'salary', 'raw_score'
+        ])
+        optimal_team_table = pd.concat([optimal_team_table, total_row])
         return html.Div([
             dt.DataTable(
                 id='optimal-results-table',
                 columns=temp_table_cols,
-                data=optimal_team_table.to_dict('rows')
+                data=optimal_team_table.to_dict('rows'),
+                style_data_conditional=[
+                    {
+                        'if': {
+                            'filter_query': '{name} eq "Total"',
+                        },
+                        'backgroundColor': 'LightGray'
+                    }
+                ]
             )
         ])
