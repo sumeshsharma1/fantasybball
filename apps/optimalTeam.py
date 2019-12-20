@@ -5,14 +5,12 @@ from dash.dependencies import Input, Output
 from dash.exceptions import PreventUpdate
 import numpy as np
 import pandas as pd
-import locale
 
 from baseDataCreation import create_base_df
 from espnQuery import espn_fantasy_pull, espn_team_pull
 from calculateOptimalTeam import calculate_optimal_team
 from app import app
 
-locale.setlocale( locale.LC_ALL, 'English_United States.1252' )
 
 df = create_base_df(season_year=2020)
 #df['salary'] = df['2019-20']
