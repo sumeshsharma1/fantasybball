@@ -6,7 +6,7 @@ from dash.exceptions import PreventUpdate
 import numpy as np
 import pandas as pd
 
-from baseDataCreation import create_base_df
+from baseDataCreation import create_base_df, create_daily_df
 from espnQuery import espn_fantasy_pull, espn_team_pull
 from calculateOptimalTeam import calculate_optimal_team
 from app import app
@@ -206,6 +206,17 @@ layout = html.Div([
         ),
         html.Div(
             dcc.Dropdown(
+                id='last-n-days',
+                options=[
+                    {'label': 'Last 7 Days', 'value': '7'},
+                    {'label': 'Last 15 Days', 'value': '15'}
+                ],
+                placeholder='Past Days Filter'
+            ),
+            style={'width': '20%'}
+        ),
+        html.Div(
+            dcc.Dropdown(
                 id='number-players-dropdown',
                 options=[
                     {'label': '10', 'value': '10'},
@@ -220,7 +231,8 @@ layout = html.Div([
     ], style={'display': 'flex', 'justify-content': 'space-between'}),
     html.Br(),
     html.Div([
-        html.Button('Calculate', id='calculation-button')
+        html.Button('Calculate', id='calculation-button'),
+        html.Button('Reset', id='reset-button')
     ], style={'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}),
     html.Br(),
     html.Div([
@@ -234,6 +246,12 @@ layout = html.Div([
         )
     ])
 ])
+
+@app.callback(
+    Output('calculation-button', 'n_clicks'),
+    [Input('reset-button', 'n_clicks')])
+def update(reset):
+    return 0
 
 @app.callback(
     Output('solutions-table', 'children'),
@@ -252,11 +270,12 @@ layout = html.Div([
      Input('exclusion-list-dropdown', 'value'),
      Input('inclusion-list-dropdown', 'value'),
      Input('espn-team-name', 'value'),
-     Input('calculation-button', 'n_clicks')])
+     Input('calculation-button', 'n_clicks'),
+     Input('last-n-days', 'value')])
 
 def create_solution_table(fg_value, ft_value, three_point_value, rebs, asts, stls, blks,
     tos, ppg, checklist_options, fleague, number_players, exclusion_list, inclusion_list,
-    fantasy_team, calculation_clicks):
+    fantasy_team, calculation_clicks, last_n_days):
     print(calculation_clicks)
     if exclusion_list is None:
         exclusion_list = []
@@ -268,8 +287,6 @@ def create_solution_table(fg_value, ft_value, three_point_value, rebs, asts, stl
             exclusion_list += list(set(fantasy_players) - set(team_dict[fantasy_team]))
         else:
             exclusion_list += fantasy_players
-    print(exclusion_list)
-    print(len(exclusion_list))
     weight_dict = {
         'field_goal_percentage': float(fg_value[:-1]),
         'free_throw_percentage': float(ft_value[:-1]),
@@ -281,24 +298,36 @@ def create_solution_table(fg_value, ft_value, three_point_value, rebs, asts, stl
         'turnovers': float(tos[:-1]),
         'ppg': float(ppg[:-1])
     }
-    temp_table = df
-    temp_table.loc[temp_table['attempted_field_goals'] <= np.percentile(temp_table['attempted_field_goals'], 25), ['field_goal_percentage']] = 0
-    temp_table.loc[temp_table['attempted_free_throws'] <= np.percentile(temp_table['attempted_free_throws'], 25), ['free_throw_percentage']] = 0
-    temp_table['ppg'] = temp_table.ppg.round(1)
-    temp_table['raw_score'] = 0
-    for option in checklist_options:
-        if option == 'turnovers':
-            temp_table['raw_score'] -= normalize(temp_table[option])*weight_dict[option]
-        else:
-            temp_table['raw_score'] += normalize(temp_table[option])*weight_dict[option]
 
     temp_table_col_list = ['name', 'field_goal_percentage', 'free_throw_percentage', 'made_three_point_field_goals',
         'rebounds', 'assists', 'steals', 'blocks', 'turnovers', 'ppg', 'salary', 'raw_score']
     temp_table_cols = [{'name': i, 'id': i} for i in temp_table_col_list]
 
-    if calculation_clicks is None or number_players is None:
+    if (calculation_clicks is None) or (number_players is None):
+        print('None')
         raise PreventUpdate
+    elif calculation_clicks == 0:
+        print('0')
+        return html.Div([
+            dt.DataTable(
+                id='optimal-results-table',
+                data=[]
+            )
+        ])
     else:
+        if last_n_days is None:
+            temp_table = df
+        else:
+            temp_table = create_daily_df(last_days=int(last_n_days))
+        temp_table.loc[temp_table['attempted_field_goals'] <= np.percentile(temp_table['attempted_field_goals'], 25), ['field_goal_percentage']] = 0
+        temp_table.loc[temp_table['attempted_free_throws'] <= np.percentile(temp_table['attempted_free_throws'], 25), ['free_throw_percentage']] = 0
+        temp_table['ppg'] = temp_table.ppg.round(1)
+        temp_table['raw_score'] = 0
+        for option in checklist_options:
+            if option == 'turnovers':
+                temp_table['raw_score'] -= normalize(temp_table[option])*weight_dict[option]
+            else:
+                temp_table['raw_score'] += normalize(temp_table[option])*weight_dict[option]
         scores = temp_table['raw_score'].to_numpy()
         sals = temp_table['2019-20'].replace('[\$,]', '', regex=True).astype(float).to_numpy()
         names = temp_table['no_accents'].to_numpy()
@@ -312,17 +341,17 @@ def create_solution_table(fg_value, ft_value, three_point_value, rebs, asts, stl
         optimal_team_table['raw_score'] = optimal_team_table['raw_score'].round(2)
         total_row = pd.DataFrame([[
             'Total',
-            optimal_team_table['field_goal_percentage'].mean().round(1),
-            optimal_team_table['free_throw_percentage'].mean().round(1),
+            round(optimal_team_table['field_goal_percentage'].mean(),1),
+            round(optimal_team_table['free_throw_percentage'].mean(),1),
             optimal_team_table['made_three_point_field_goals'].sum(),
             optimal_team_table['rebounds'].sum(),
             optimal_team_table['assists'].sum(),
             optimal_team_table['steals'].sum(),
             optimal_team_table['blocks'].sum(),
             optimal_team_table['turnovers'].sum(),
-            optimal_team_table['ppg'].mean().round(1),
+            round(optimal_team_table['ppg'].mean(),1),
             '${:,.2f}'.format(optimal_team_table['salary'].str[1:].str.replace(",", "").astype(float).sum()),
-            optimal_team_table['raw_score'].sum().round(2)
+            round(optimal_team_table['raw_score'].sum(),2)
         ]],
         columns = [
             'name', 'field_goal_percentage', 'free_throw_percentage', 'made_three_point_field_goals',

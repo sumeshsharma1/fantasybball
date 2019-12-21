@@ -230,7 +230,6 @@ def update_table(fg_value, ft_value, three_point_value, rebs, asts, stls, blks,
     }
     temp_table = total_df_with_salaries
     temp_table['ppg'] = temp_table.ppg.round(1)
-    temp_table['true_shooting_percentage'] = temp_table.true_shooting_percentage.round(1)
     temp_table['raw_score'] = 0
     for option in checklist_options:
         if option == 'turnovers':
