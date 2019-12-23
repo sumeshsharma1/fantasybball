@@ -237,6 +237,16 @@ layout = html.Div([
     html.Br(),
     html.Div([
         dcc.Loading(
+            id='loading-2',
+            children=html.Div(
+                id='intermediate-value',
+                style={'display': 'none'}
+            ),
+            type='dot'
+        )
+    ]),
+    html.Div([
+        dcc.Loading(
             id='loading-1',
             children=html.Div(
                 id='solutions-table',
@@ -252,6 +262,15 @@ layout = html.Div([
     [Input('reset-button', 'n_clicks')])
 def update(reset):
     return 0
+
+@app.callback(
+    Output('intermediate-value', 'children'),
+    [Input('last-n-days', 'value')])
+def call_hidden_data(last_n_days):
+    if last_n_days is not None:
+        print('Querying hidden data')
+        hidden_df = create_daily_df(last_days=int(last_n_days))
+        return hidden_df.to_json(orient='split')
 
 @app.callback(
     Output('solutions-table', 'children'),
@@ -271,11 +290,10 @@ def update(reset):
      Input('inclusion-list-dropdown', 'value'),
      Input('espn-team-name', 'value'),
      Input('calculation-button', 'n_clicks'),
-     Input('last-n-days', 'value')])
-
+     Input('intermediate-value', 'children')])
 def create_solution_table(fg_value, ft_value, three_point_value, rebs, asts, stls, blks,
     tos, ppg, checklist_options, fleague, number_players, exclusion_list, inclusion_list,
-    fantasy_team, calculation_clicks, last_n_days):
+    fantasy_team, calculation_clicks, last_n_days_data):
     print(calculation_clicks)
     if exclusion_list is None:
         exclusion_list = []
@@ -315,10 +333,11 @@ def create_solution_table(fg_value, ft_value, three_point_value, rebs, asts, stl
             )
         ])
     else:
-        if last_n_days is None:
+        if last_n_days_data is None:
             temp_table = df
         else:
-            temp_table = create_daily_df(last_days=int(last_n_days))
+            temp_table = pd.read_json(last_n_days_data, orient='split')
+            print(temp_table)
         temp_table.loc[temp_table['attempted_field_goals'] <= np.percentile(temp_table['attempted_field_goals'], 25), ['field_goal_percentage']] = 0
         temp_table.loc[temp_table['attempted_free_throws'] <= np.percentile(temp_table['attempted_free_throws'], 25), ['free_throw_percentage']] = 0
         temp_table['ppg'] = temp_table.ppg.round(1)
