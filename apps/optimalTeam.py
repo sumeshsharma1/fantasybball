@@ -260,15 +260,9 @@ layout = html.Div([
         id='current-score',
         style={'display': 'none'}
     ),
-    html.Div([
-        dcc.Loading(
-            id='loading-3',
-            children=html.Div(
-                id='comparison-text'
-            ),
-            type='circle'
-        )
-    ])
+    html.Div(
+        id='comparison-text'
+    )
 ])
 
 @app.callback(
@@ -346,13 +340,12 @@ def create_solution_table(fg_value, ft_value, three_point_value, rebs, asts, stl
                 id='optimal-results-table',
                 data=[]
             )
-        ])
+        ]), html.Br()
     else:
         if last_n_days_data is None:
             temp_table = df
         else:
             temp_table = pd.read_json(last_n_days_data, orient='split')
-            print(temp_table)
         temp_table.loc[temp_table['attempted_field_goals'] <= np.percentile(temp_table['attempted_field_goals'], 25), ['field_goal_percentage']] = 0
         temp_table.loc[temp_table['attempted_free_throws'] <= np.percentile(temp_table['attempted_free_throws'], 25), ['free_throw_percentage']] = 0
         temp_table['ppg'] = temp_table.ppg.round(1)
@@ -412,9 +405,12 @@ def create_solution_table(fg_value, ft_value, three_point_value, rebs, asts, stl
     Output('comparison-text', 'children'),
     [Input('solutions-table', 'children'),
      Input('current-score', 'children'),
-     Input('espn-team-name', 'value')])
-def write_comparison_text(solutions_table, current_score, fantasy_team):
-    if solutions_table and current_score:
+     Input('espn-team-name', 'value'),
+     Input('calculation-button', 'n_clicks')])
+def write_comparison_text(solutions_table, current_score, fantasy_team, calculation_clicks):
+    if calculation_clicks == 0:
+        raise PreventUpdate
+    elif solutions_table and current_score:
         current_raw_score = 0
         current_score_df = pd.read_json(current_score, orient='split')
         print(round((current_score_df.loc[current_score_df['no_accents'].isin(team_dict[fantasy_team]), 'raw_score']).sum(), 2))
