@@ -254,6 +254,20 @@ layout = html.Div([
             ),
             type='circle'
         )
+    ]),
+    html.Br(),
+    html.Div(
+        id='current-score',
+        style={'display': 'none'}
+    ),
+    html.Div([
+        dcc.Loading(
+            id='loading-3',
+            children=html.Div(
+                id='comparison-text'
+            ),
+            type='circle'
+        )
     ])
 ])
 
@@ -273,7 +287,8 @@ def call_hidden_data(last_n_days):
         return hidden_df.to_json(orient='split')
 
 @app.callback(
-    Output('solutions-table', 'children'),
+    [Output('solutions-table', 'children'),
+     Output('current-score', 'children')],
     [Input('fg-weighting', 'value'),
      Input('ft-weighting', 'value'),
      Input('3p-weighting', 'value'),
@@ -391,4 +406,18 @@ def create_solution_table(fg_value, ft_value, three_point_value, rebs, asts, stl
                     }
                 ]
             )
-        ])
+        ]), temp_table.to_json(orient='split')
+
+@app.callback(
+    Output('comparison-text', 'children'),
+    [Input('solutions-table', 'children'),
+     Input('current-score', 'children'),
+     Input('espn-team-name', 'value')])
+def write_comparison_text(solutions_table, current_score, fantasy_team):
+    if solutions_table and current_score:
+        current_raw_score = 0
+        current_score_df = pd.read_json(current_score, orient='split')
+        print(round((current_score_df.loc[current_score_df['no_accents'].isin(team_dict[fantasy_team]), 'raw_score']).sum(), 2))
+        return "Your team's projected raw score is " + str(solutions_table['props']['children'][0]['props']['data'][-1]['raw_score']) + \
+            ". Your team's current raw score is " + \
+            str(round((current_score_df.loc[current_score_df['no_accents'].isin(team_dict[fantasy_team]), 'raw_score']).sum(), 2))
