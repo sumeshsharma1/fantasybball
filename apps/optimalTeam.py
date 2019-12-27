@@ -409,7 +409,7 @@ def create_solution_table(fg_value, ft_value, three_point_value, rebs, asts, stl
      Input('calculation-button', 'n_clicks')])
 def write_comparison_text(solutions_table, current_score, fantasy_team, calculation_clicks):
     if calculation_clicks == 0:
-        raise PreventUpdate
+        return ""
     elif solutions_table and current_score:
         current_raw_score = 0
         current_score_df = pd.read_json(current_score, orient='split')
