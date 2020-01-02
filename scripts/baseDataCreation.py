@@ -5,19 +5,16 @@ def create_base_df(season_year):
 
     advanced_stats = client.players_advanced_season_totals(season_end_year=2020)
     season_stats = client.players_season_totals(season_end_year=2020)
-    advanced_stats_df = pd.DataFrame(advanced_stats)[['age', 'box_plus_minus', 'true_shooting_percentage',
-                                                      'value_over_replacement_player', 'win_shares',
-                                                      'slug']]
-    season_stats_df = pd.DataFrame(season_stats)
+    total_df = pd.DataFrame(season_stats)
 
-    total_df = season_stats_df.join(advanced_stats_df.set_index(['slug', 'age']), on=['slug', 'age'])
     total_df['positions'], total_df['team'] = total_df['positions'].astype(str), total_df['team'].astype(str)
 
     positions = {"[<Position.CENTER: 'CENTER'>]": "C",
                  "[<Position.SHOOTING_GUARD: 'SHOOTING GUARD'>]": "SG",
                  "[<Position.POWER_FORWARD: 'POWER FORWARD'>]": "PF",
                  "[<Position.SMALL_FORWARD: 'SMALL FORWARD'>]": "SF",
-                 "[<Position.POINT_GUARD: 'POINT GUARD'>]": "PG"}
+                 "[<Position.POINT_GUARD: 'POINT GUARD'>]": "PG",
+                 "[<Position.GUARD: 'GUARD'>]": "SG"}
     team_sub = {"Team.": "",
                 "_": ' '}
 
@@ -28,7 +25,6 @@ def create_base_df(season_year):
         three_point_field_goal_percentage=(total_df['made_three_point_field_goals'] * 100 / total_df[
             'attempted_three_point_field_goals']).round(1),
         free_throw_percentage=(total_df['made_free_throws'] * 100 / total_df['attempted_free_throws']).round(1),
-        true_shooting_percentage=total_df['true_shooting_percentage'] * 100,
         rebounds=total_df['offensive_rebounds'] + total_df['defensive_rebounds']).fillna(0)
 
     total_df['no_accents'] = total_df['name'].apply(
@@ -48,9 +44,7 @@ def create_base_df(season_year):
                                                                                    'blocks':'sum',
                                                                                    'steals':'sum',
                                                                                    'turnovers':'sum',
-                                                                                   'team': 'last'})
-    total_df['field_goal_percentage'] = round(total_df['field_goal_percentage'], 1)
-    total_df['free_throw_percentage'] = round(total_df['free_throw_percentage'], 1)
+                                                                                   'team': 'last'}).drop_duplicates()
 
     salaries = pd.read_csv("nba_beta_salary.csv", sep=",", engine='python')
 
