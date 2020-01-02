@@ -6,9 +6,9 @@ from dash.exceptions import PreventUpdate
 import numpy as np
 import pandas as pd
 
-from baseDataCreation import create_base_df, create_daily_df
-from espnQuery import espn_fantasy_pull, espn_team_pull
-from calculateOptimalTeam import calculate_optimal_team
+from scripts.baseDataCreation import create_base_df, create_daily_df
+from scripts.espnQuery import espn_fantasy_pull, espn_team_pull
+from scripts.calculateOptimalTeam import calculate_optimal_team
 from app import app
 
 

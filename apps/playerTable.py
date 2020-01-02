@@ -5,7 +5,7 @@ import dash_html_components as html
 import dash_table
 import numpy as np
 import pandas as pd
-from baseDataCreation import create_base_df
+from scripts.baseDataCreation import create_base_df
 from app import app
 
 total_df_with_salaries = create_base_df(season_year=2020)

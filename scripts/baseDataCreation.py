@@ -3,8 +3,8 @@ def create_base_df(season_year):
     import pandas as pd
     import unicodedata
 
-    advanced_stats = client.players_advanced_season_totals(season_end_year=season_year)
-    season_stats = client.players_season_totals(season_end_year=season_year)
+    advanced_stats = client.players_advanced_season_totals(season_end_year=2020)
+    season_stats = client.players_season_totals(season_end_year=2020)
     advanced_stats_df = pd.DataFrame(advanced_stats)[['age', 'box_plus_minus', 'true_shooting_percentage',
                                                       'value_over_replacement_player', 'win_shares',
                                                       'slug']]
@@ -28,11 +28,29 @@ def create_base_df(season_year):
         three_point_field_goal_percentage=(total_df['made_three_point_field_goals'] * 100 / total_df[
             'attempted_three_point_field_goals']).round(1),
         free_throw_percentage=(total_df['made_free_throws'] * 100 / total_df['attempted_free_throws']).round(1),
-        true_shooting_percentage=total_df['true_shooting_percentage'] * 100).fillna(0)
+        true_shooting_percentage=total_df['true_shooting_percentage'] * 100,
+        rebounds=total_df['offensive_rebounds'] + total_df['defensive_rebounds']).fillna(0)
 
     total_df['no_accents'] = total_df['name'].apply(
         lambda x: unicodedata.normalize('NFD', x).encode('ascii', 'ignore').decode('UTF-8').replace(".", ""))
     total_df.no_accents[total_df.no_accents == 'Taurean Waller-Prince'] = 'Taurean Prince'
+
+    total_df = total_df.groupby(['name', 'slug', 'no_accents'], as_index=False).agg({'field_goal_percentage':'mean',
+                                                                                   'free_throw_percentage':'mean',
+                                                                                   'made_three_point_field_goals':'sum',
+                                                                                   'made_field_goals': 'sum',
+                                                                                   'made_free_throws': 'sum',
+                                                                                   'games_played': 'sum',
+                                                                                   'attempted_field_goals':'sum',
+                                                                                   'attempted_free_throws':'sum',
+                                                                                   'rebounds':'sum',
+                                                                                   'assists':'sum',
+                                                                                   'blocks':'sum',
+                                                                                   'steals':'sum',
+                                                                                   'turnovers':'sum',
+                                                                                   'team': 'last'})
+    total_df['field_goal_percentage'] = round(total_df['field_goal_percentage'], 1)
+    total_df['free_throw_percentage'] = round(total_df['free_throw_percentage'], 1)
 
     salaries = pd.read_csv("nba_beta_salary.csv", sep=",", engine='python')
 
@@ -40,8 +58,7 @@ def create_base_df(season_year):
 
     total_df_with_salaries = total_df_with_salaries.drop('slug', axis=1)
 
-    total_df_with_salaries['rebounds'] = total_df_with_salaries['offensive_rebounds'] + total_df_with_salaries[
-        'defensive_rebounds']
+
     total_df_with_salaries['ppg'] = (2 * (
                 total_df_with_salaries['made_field_goals'] - total_df_with_salaries['made_three_point_field_goals']) + \
                                      3 * (total_df_with_salaries['made_three_point_field_goals']) +

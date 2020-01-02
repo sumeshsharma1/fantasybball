@@ -4,10 +4,11 @@ import dash_table as dt
 from dash.dependencies import Input, Output
 import pandas as pd
 
-from baseDataCreation import create_base_df
+from scripts.baseDataCreation import create_base_df
 from app import app
 
 df = create_base_df(season_year=2020)
+print(df.loc[df['no_accents'] == 'Jordan Clarkson'])
 df = df.rename(columns={"no_accents": "Player", "2019-20": "Salary"})
 df_two_col = df[['Player', 'Salary']]
 
