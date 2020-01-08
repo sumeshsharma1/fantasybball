@@ -12,6 +12,7 @@ def calculate_optimal_team(slots, max_cost, exclusion_list=[], inclusion_list=[]
             names = np.delete(names, index)
     if len(inclusion_list) > 0:
         for name in inclusion_list:
+            print(name)
             index = np.argwhere(names == name)
             max_cost -= sals[index].flatten().tolist()[0]
             scores = np.delete(scores, index)
@@ -55,5 +56,7 @@ def calculate_optimal_team(slots, max_cost, exclusion_list=[], inclusion_list=[]
 
     optimal_players = names[np.argwhere(marked > 0)].flatten().tolist()
     for name in inclusion_list:
+        print(optimal_players)
         optimal_players.append(name)
+        print(optimal_players)
     return optimal_players

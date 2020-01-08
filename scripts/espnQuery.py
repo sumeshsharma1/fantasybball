@@ -32,6 +32,8 @@ def espn_fantasy_pull(year, leagueid):
             player_list.append(player)
     return player_list
 
+# espn_team_pull returns a dictionary of each team in the league as keys and a list of
+# players in that league as the values. 
 def espn_team_pull(year, leagueid):
     import requests
     import csv

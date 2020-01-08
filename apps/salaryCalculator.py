@@ -8,7 +8,6 @@ from scripts.baseDataCreation import create_base_df
 from app import app
 
 df = create_base_df(season_year=2020)
-print(df.loc[df['no_accents'] == 'Jordan Clarkson'])
 df = df.rename(columns={"no_accents": "Player", "2019-20": "Salary"})
 df_two_col = df[['Player', 'Salary']]
 
@@ -30,6 +29,8 @@ layout = html.Div([
     dcc.Link('Go to player table', href='/'),
     html.Br(),
     dcc.Link('Go to team optimizer', href='/optimalTeam'),
+    html.Br(),
+    dcc.Link('Go to teeam analysis tool', href='/teamAnalysis'),
     html.Div([
         html.Div(
             dcc.Dropdown(

@@ -3,7 +3,7 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 
 from app import app, server
-from apps import playerTable, salaryCalculator, optimalTeam
+from apps import playerTable, salaryCalculator, optimalTeam, teamAnalysis
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
@@ -20,6 +20,8 @@ def display_page(pathname):
         return salaryCalculator.layout
     elif pathname == '/optimalTeam':
         return optimalTeam.layout
+    elif pathname == '/teamAnalysis':
+        return teamAnalysis.layout
     else:
         return '404'
 

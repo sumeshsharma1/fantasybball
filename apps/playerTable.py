@@ -21,6 +21,8 @@ layout = html.Div([
     dcc.Link('Go to salary calculator', href='/salaryCalculator'),
     html.Br(),
     dcc.Link('Go to team optimizer', href='/optimalTeam'),
+    html.Br(),
+    dcc.Link('Go to teeam analysis tool', href='/teamAnalysis'),
     html.Div([
         html.Div(
             dcc.RangeSlider(
@@ -237,6 +239,7 @@ def update_table(fg_value, ft_value, three_point_value, rebs, asts, stls, blks,
         else:
             temp_table['raw_score'] += normalize(temp_table[option])*weight_dict[option]
     temp_table['raw_score'] = (normalize(temp_table['raw_score'])*100).round(2)
+    temp_table = temp_table.drop('no_accents', 1)
     temp_table_cols = [{'name': i, 'id': i} for i in temp_table.columns]
     return html.Div([
         dash_table.DataTable(

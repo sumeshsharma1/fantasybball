@@ -26,6 +26,8 @@ layout = html.Div([
     dcc.Link('Go to player table', href='/'),
     html.Br(),
     dcc.Link('Go to salary calculator', href='/salaryCalculator'),
+    html.Br(),
+    dcc.Link('Go to teeam analysis tool', href='/teamAnalysis'),
     dcc.Checklist(
         id='checklist-options',
         options=[
@@ -209,7 +211,8 @@ layout = html.Div([
                 id='last-n-days',
                 options=[
                     {'label': 'Last 7 Days', 'value': '7'},
-                    {'label': 'Last 15 Days', 'value': '15'}
+                    {'label': 'Last 15 Days', 'value': '15'},
+                    {'label': 'Last 30 Days', 'value': '30'}
                 ],
                 placeholder='Past Days Filter'
             ),
