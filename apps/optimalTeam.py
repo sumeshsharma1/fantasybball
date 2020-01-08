@@ -27,7 +27,7 @@ layout = html.Div([
     html.Br(),
     dcc.Link('Go to salary calculator', href='/salaryCalculator'),
     html.Br(),
-    dcc.Link('Go to teeam analysis tool', href='/teamAnalysis'),
+    dcc.Link('Go to team analysis tool', href='/teamAnalysis'),
     dcc.Checklist(
         id='checklist-options',
         options=[
