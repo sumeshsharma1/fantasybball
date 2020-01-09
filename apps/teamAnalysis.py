@@ -3,6 +3,7 @@ import dash_html_components as html
 import dash_table as dt
 from dash.dependencies import Input, Output
 from dash.exceptions import PreventUpdate
+import dash
 import plotly.graph_objects as go
 import pandas as pd
 
@@ -67,6 +68,33 @@ layout = html.Div([
         figure = {}
     )
 ])
+
+@app.callback(
+    [Output('your-team', 'options'),
+     Output('opposing-team', 'options')],
+    [Input('your-team', 'value'),
+     Input('opposing-team', 'value')])
+def update_dropdowns(value1, value2):
+    ctx = dash.callback_context
+
+    if not ctx.triggered:
+        return dash.no_update, dash.no_update
+
+    options1 = list(league_analysis_df['team_name'].unique())
+    options2 = list(league_analysis_df['team_name'].unique())
+
+    if ctx.triggered[0]['prop_id'] == 'your-team.value':
+        temp1, temp2 = options1, options2
+        if value1 is not None:
+            temp2.remove(value1)
+        return [{'label': str(team), 'value': str(team)} for team in temp1], [{'label': str(team), 'value': str(team)} for team in temp2]
+    elif ctx.triggered[0]['prop_id'] == 'opposing-team.value':
+        temp1, temp2 = options1, options2
+        if value2 is not None:
+            temp1.remove(value2)
+        return [{'label': str(team), 'value': str(team)} for team in temp1], [{'label': str(team), 'value': str(team)} for team in temp2]
+    else:
+        return dash.no_update, dash.no_update
 
 # Store last n days data as JSON file to make things faster
 @app.callback(
