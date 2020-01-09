@@ -27,7 +27,20 @@ layout = html.Div([
                 options=[{'label': str(team), 'value': str(team)} for team in team_list],
                 placeholder='Your Team'
             ),
-            style={'width': '43%'}
+            style={'width': '30%'}
+        ),
+        html.Div(
+            dcc.Dropdown(
+                id='last-n-days',
+                options=[
+                    {'label': 'Last 7 Days', 'value': '7'},
+                    {'label': 'Last 15 Days', 'value': '15'},
+                    {'label': 'Last 30 Days', 'value': '30'},
+                    {'label': 'Entire Season', 'value': 'season'}
+                ],
+                value='season'
+            ),
+            style={'width': '30%'}
         ),
         html.Div(
             dcc.Dropdown(
@@ -35,9 +48,19 @@ layout = html.Div([
                 options=[{'label': str(team), 'value': str(team)} for team in team_list],
                 placeholder='Opposing Team'
             ),
-            style={'width': '43%'}
+            style={'width': '30%'}
         )
     ], style={'display': 'flex', 'justify-content': 'space-between'}),
+    html.Div([
+        dcc.Loading(
+            id='loading-2',
+            children=html.Div(
+                id='intermediate-value-team-analysis',
+                style={'display': 'none'}
+            ),
+            type='dot'
+        )
+    ]),
     html.Br(),
     dcc.Graph(
         id='comparison-radar',
@@ -45,12 +68,25 @@ layout = html.Div([
     )
 ])
 
+# Store last n days data as JSON file to make things faster
+@app.callback(
+    Output('intermediate-value-team-analysis', 'children'),
+    [Input('last-n-days', 'value')])
+def call_hidden_data(last_n_days_team_analysis):
+    if last_n_days_team_analysis == "season":
+        hidden_df_team = league_analysis(year=2020, leagueid=22328189)
+    else:
+        hidden_df_team = league_analysis(year=2020, leagueid=22328189, last_n_days=int(last_n_days_team_analysis))
+    return hidden_df_team.to_json(orient='split')
+
 @app.callback(
     Output('comparison-radar', 'figure'),
     [Input('your-team', 'value'),
-     Input('opposing-team', 'value')])
+     Input('opposing-team', 'value'),
+     Input('intermediate-value-team-analysis', 'children')])
 
-def generate_radar_chart(your_team, opposing_team):
+def generate_radar_chart(your_team, opposing_team, hidden_team_data):
+    league_analysis_df = pd.read_json(hidden_team_data, orient='split')
     fig = go.Figure()
     for team in [your_team, opposing_team]:
         fig.add_trace(go.Scatterpolar(
