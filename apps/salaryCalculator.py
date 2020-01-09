@@ -13,17 +13,6 @@ df_two_col = df[['Player', 'Salary']]
 
 empty_df = pd.DataFrame(columns=['Player', 'Salary'])
 
-# def generate_salary_table(dataframe, max_rows=14):
-#     return html.Table(
-#         # header
-#         [html.Tr([html.Th(col) for col in dataframe.columns])] + \
-#         # Body
-#         [html.Tr([
-#             html.Td
-#         ])]
-#
-#     )
-
 layout = html.Div([
     html.H3('Salary Calculator'),
     dcc.Link('Go to player table', href='/'),

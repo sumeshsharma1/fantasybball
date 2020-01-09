@@ -76,13 +76,10 @@ layout = html.Div([
      Input('opposing-team', 'value')])
 def update_dropdowns(value1, value2):
     ctx = dash.callback_context
-
     if not ctx.triggered:
         return dash.no_update, dash.no_update
-
     options1 = list(league_analysis_df['team_name'].unique())
     options2 = list(league_analysis_df['team_name'].unique())
-
     if ctx.triggered[0]['prop_id'] == 'your-team.value':
         temp1, temp2 = options1, options2
         if value1 is not None:
