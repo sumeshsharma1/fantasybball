@@ -13,3 +13,7 @@ This is useful in our league because we have a $110M salary cap.
 that falls under the $110M salary cap based on the metrics and weighting provided. Users can include and exclude certain players 
 from their calculated team, and also put in which fantasy team they are a part of (for my league only currently, sorry!) to determine
 the optimal team they can create. Users can create teams from season data, or from player data within the last 7 or 15 days. 
+
+- The fourth tab analyzes the teams in my current fantasy league over the last 7,15,30 days or the whole season. It looks at how the team
+compares to other teams in the league and gives that information in radar charts, allowing teams to see what categories they should focus 
+on or try to optimize for.
