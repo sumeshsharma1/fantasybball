@@ -56,7 +56,5 @@ def calculate_optimal_team(slots, max_cost, exclusion_list=[], inclusion_list=[]
 
     optimal_players = names[np.argwhere(marked > 0)].flatten().tolist()
     for name in inclusion_list:
-        print(optimal_players)
         optimal_players.append(name)
-        print(optimal_players)
     return optimal_players
