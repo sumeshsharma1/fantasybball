@@ -92,45 +92,44 @@ def call_hidden_data(last_n_days_team_analysis, league_id):
         hidden_df_team = league_analysis(year=2020, leagueid=int(league_id), last_n_days=int(last_n_days_team_analysis))
     return hidden_df_team.to_json(orient='split')
 
-@app.callback(
-    [Output('your-team', 'options'),
-     Output('opposing-team', 'options')],
-    [Input('intermediate-value-team-analysis', 'children')])
-def create_team_options(hidden_team_data):
-    league_analysis_df = pd.read_json(hidden_team_data, orient='split')
-    options1 = list(league_analysis_df['team_name'].unique())
-    options2 = list(league_analysis_df['team_name'].unique())
-    return [{'label': str(team), 'value': str(team)} for team in options1], [{'label': str(team), 'value': str(team)} for team in options2]
-
-# Still need to figure out how to make this work: commented for now
 # @app.callback(
 #     [Output('your-team', 'options'),
 #      Output('opposing-team', 'options')],
-#     [Input('your-team', 'value'),
-#      Input('opposing-team', 'value'),
-#      Input('intermediate-value-team-analysis', 'children')])
-# def update_dropdowns(value1, value2, hidden_team_data):
+#     [Input('intermediate-value-team-analysis', 'children')])
+# def create_team_options(hidden_team_data):
 #     league_analysis_df = pd.read_json(hidden_team_data, orient='split')
 #     options1 = list(league_analysis_df['team_name'].unique())
 #     options2 = list(league_analysis_df['team_name'].unique())
-#     ctx = dash.callback_context
-#     print(ctx.triggered[0]['prop_id'])
-#     if not ctx.triggered:
-#         return dash.no_update, dash.no_update
-#     if ctx.triggered[0]['prop_id'] == 'intermediate-value-team-analysis.children':
-#         return [{'label': str(team), 'value': str(team)} for team in options1], [{'label': str(team), 'value': str(team)} for team in options2]
-#     elif ctx.triggered[0]['prop_id'] == 'your-team.value':
-#         temp1, temp2 = options1, options2
-#         if value1 is not None:
-#             temp2.remove(value1)
-#         return [{'label': str(team), 'value': str(team)} for team in temp1], [{'label': str(team), 'value': str(team)} for team in temp2]
-#     elif ctx.triggered[0]['prop_id'] == 'opposing-team.value':
-#         temp1, temp2 = options1, options2
-#         if value2 is not None:
-#             temp1.remove(value2)
-#         return [{'label': str(team), 'value': str(team)} for team in temp1], [{'label': str(team), 'value': str(team)} for team in temp2]
-#     else:
-#         return dash.no_update, dash.no_update
+#     return [{'label': str(team), 'value': str(team)} for team in options1], [{'label': str(team), 'value': str(team)} for team in options2]
+
+@app.callback(
+    [Output('your-team', 'options'),
+     Output('opposing-team', 'options')],
+    [Input('intermediate-value-team-analysis', 'children'),
+     Input('your-team', 'value'),
+     Input('opposing-team', 'value')])
+def create_team_options(hidden_team_data, value1, value2):
+    league_analysis_df = pd.read_json(hidden_team_data, orient='split')
+    options1 = list(league_analysis_df['team_name'].unique())
+    options2 = list(league_analysis_df['team_name'].unique())
+
+    ctx = dash.callback_context
+    print(ctx.triggered[0]['prop_id'])
+
+    if ctx.triggered[0]['prop_id'] == 'your-team.value':
+        temp1, temp2 = options1, options2
+        if value1 is not None:
+            temp2.remove(value1)
+        return [{'label': str(team), 'value': str(team)} for team in temp1], [{'label': str(team), 'value': str(team)} for team in temp2]
+    elif ctx.triggered[0]['prop_id'] == 'opposing-team.value':
+        temp1, temp2 = options1, options2
+        if value2 is not None:
+            temp1.remove(value2)
+        return [{'label': str(team), 'value': str(team)} for team in temp1], [{'label': str(team), 'value': str(team)} for team in temp2]
+    elif ctx.triggered[0]['prop_id'] == 'intermediate-value-team-analysis.children':
+        return [{'label': str(team), 'value': str(team)} for team in options1], [{'label': str(team), 'value': str(team)} for team in options2]
+    else:
+        return dash.no_update, dash.no_update
 
 
 @app.callback(
