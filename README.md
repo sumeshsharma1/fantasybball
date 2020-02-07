@@ -2,6 +2,8 @@
 This is a Dash-based app, hosted on Heroku, that provides a few tabs of analysis for my fantasy basketball league on ESPN.
 While this app currently only supports my league, future work involves making it functional for any public ESPN fantasy basketball league.
 
+Link is at: http://fantasy-basketball-dashboard.herokuapp.com/optimalTeam
+
 The app currently has three tabs to view from:
 - The first is a dedicated player table which houses all of the stats for players this season
 as well as a raw score that is calculated based on weightings from each of the 9 head-to-head fantasy categories.
