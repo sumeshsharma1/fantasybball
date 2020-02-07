@@ -247,7 +247,7 @@ def update_table(fg_value, ft_value, three_point_value, rebs, asts, stls, blks,
             columns=temp_table_cols,
             data=temp_table.to_dict('rows'),
             sort_action="native",
-            fixed_columns={ 'headers': True, 'data': 1 },
+#            fixed_columns={ 'headers': True, 'data': 1 },
             style_cell={
                 'minWidth': '100px', 'width': '200px', 'maxWidth': '300px'
             },
