@@ -1,6 +1,7 @@
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_table as dt
+import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
 from dash.exceptions import PreventUpdate
 import numpy as np
@@ -23,11 +24,28 @@ def normalize(array):
 
 layout = html.Div([
     html.H3('Team Optimizer'),
-    dcc.Link('Go to player table', href='/'),
+    # html.Div([
+    #     html.Div(
+    #         dcc.Link('Go to player table', href='/'),
+    #         style={'display': 'inline-block', 'width': '20%'}
+    #     ),
+    #     html.Div(
+    #         dcc.Link('Go to salary calculator', href='/salaryCalculator'),
+    #         style={'display': 'inline-block', 'width': '20%'}
+    #     ),
+    #     html.Div(
+    #         dcc.Link('Go to team analysis tool', href='/teamAnalysis'),
+    #         style={'display': 'inline-block', 'width': '20%'}
+    #     )
+    # ]),
+    # html.Br(),
+
+    dbc.Nav([
+        dbc.NavItem(dbc.NavLink('Go to player table', href='/')),
+        dbc.NavItem(dbc.NavLink('Go to salary calculator', href='/salaryCalculator')),
+        dbc.NavItem(dbc.NavLink('Go to team analysis tool', href='/teamAnalysis'))
+    ], horizontal='start', justified=True),
     html.Br(),
-    dcc.Link('Go to salary calculator', href='/salaryCalculator'),
-    html.Br(),
-    dcc.Link('Go to team analysis tool', href='/teamAnalysis'),
     dcc.Checklist(
         id='checklist-options',
         options=[
@@ -234,8 +252,8 @@ layout = html.Div([
     ], style={'display': 'flex', 'justify-content': 'space-between'}),
     html.Br(),
     html.Div([
-        html.Button('Calculate', id='calculation-button'),
-        html.Button('Reset', id='reset-button')
+        dbc.Button('Calculate', id='calculation-button', color='success'),
+        dbc.Button('Reset', id='reset-button', color='warning')
     ], style={'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}),
     html.Br(),
     html.Div([
@@ -245,7 +263,8 @@ layout = html.Div([
                 id='intermediate-value',
                 style={'display': 'none'}
             ),
-            type='dot'
+            type='dot',
+            color='#56cc9d'
         )
     ]),
     html.Div([
@@ -255,7 +274,8 @@ layout = html.Div([
                 id='solutions-table',
                 className='tableDiv'
             ),
-            type='circle'
+            type='circle',
+            color='#56cc9d'
         )
     ]),
     html.Br(),
@@ -424,5 +444,5 @@ def write_comparison_text(solutions_table, current_score, projected_score, fanta
         current_score_df = pd.read_json(current_score, orient='split')
         current_roster = current_score_df.loc[current_score_df['no_accents'].isin(team_dict[fantasy_team]), 'raw_score']
         raw_score = round((current_roster.nlargest(10)).sum(), 2)
-        return "Your team's projected raw score is " + str(projected_score) + \
+        return "Your team's projected raw score is " + str(round(projected_score, 2)) + \
             ". Your team's current raw score is " + str(raw_score)
