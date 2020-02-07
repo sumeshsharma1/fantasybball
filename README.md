@@ -19,4 +19,6 @@ compares to other teams in the league and gives that information in radar charts
 on or try to optimize for.
 
 Demo below:
+
+
 ![](https://media.giphy.com/media/mEPIo8WHut2dnQe5AQ/giphy.gif)
