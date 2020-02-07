@@ -1,6 +1,7 @@
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_table as dt
+import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
 import pandas as pd
 
@@ -15,11 +16,16 @@ empty_df = pd.DataFrame(columns=['Player', 'Salary'])
 
 layout = html.Div([
     html.H3('Salary Calculator'),
-    dcc.Link('Go to player table', href='/'),
-    html.Br(),
-    dcc.Link('Go to team optimizer', href='/optimalTeam'),
-    html.Br(),
-    dcc.Link('Go to team analysis tool', href='/teamAnalysis'),
+    # dcc.Link('Go to player table', href='/'),
+    # html.Br(),
+    # dcc.Link('Go to team optimizer', href='/optimalTeam'),
+    # html.Br(),
+    # dcc.Link('Go to team analysis tool', href='/teamAnalysis'),
+    dbc.Nav([
+        dbc.NavItem(dbc.NavLink('Go to player table', href='/')),
+        dbc.NavItem(dbc.NavLink('Go to team optimizer', href='/optimalTeam')),
+        dbc.NavItem(dbc.NavLink('Go to team analysis tool', href='/teamAnalysis'))
+    ], horizontal='center'),
     html.Div([
         html.Div(
             dcc.Dropdown(

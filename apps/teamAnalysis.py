@@ -1,6 +1,7 @@
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_table as dt
+import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
 from dash.exceptions import PreventUpdate
 import dash
@@ -16,11 +17,16 @@ from app import app
 
 layout = html.Div([
     html.H3('Fantasy Team Analysis'),
-    dcc.Link('Go to player table', href='/'),
-    html.Br(),
-    dcc.Link('Go to salary calculator', href='/salaryCalculator'),
-    html.Br(),
-    dcc.Link('Go to team optimizer', href='/optimalTeam'),
+    # dcc.Link('Go to player table', href='/'),
+    # html.Br(),
+    # dcc.Link('Go to salary calculator', href='/salaryCalculator'),
+    # html.Br(),
+    # dcc.Link('Go to team optimizer', href='/optimalTeam'),
+    dbc.Nav([
+        dbc.NavItem(dbc.NavLink('Go to player table', href='/')),
+        dbc.NavItem(dbc.NavLink('Go to salary calculator', href='/salaryCalculator')),
+        dbc.NavItem(dbc.NavLink('Go to team optimizer', href='/optimalTeam'))
+    ], horizontal='center'),
     html.Div([
         html.Div(
             dcc.Dropdown(

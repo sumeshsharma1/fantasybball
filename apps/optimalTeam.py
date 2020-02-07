@@ -44,7 +44,7 @@ layout = html.Div([
         dbc.NavItem(dbc.NavLink('Go to player table', href='/')),
         dbc.NavItem(dbc.NavLink('Go to salary calculator', href='/salaryCalculator')),
         dbc.NavItem(dbc.NavLink('Go to team analysis tool', href='/teamAnalysis'))
-    ], horizontal='start', justified=True),
+    ], horizontal='center'),
     html.Br(),
     dcc.Checklist(
         id='checklist-options',
