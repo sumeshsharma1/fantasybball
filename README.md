@@ -20,5 +20,4 @@ on or try to optimize for.
 
 Demo below:
 
-
-![](https://media.giphy.com/media/mEPIo8WHut2dnQe5AQ/giphy.gif)
+![](https://media.giphy.com/media/gKCRJjm3jR6ZMumzt2/giphy.gif)
