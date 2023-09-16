@@ -8,8 +8,8 @@ import pandas as pd
 from scripts.baseDataCreation import create_base_df
 from app import app
 
-df = create_base_df(season_year=2020)
-df = df.rename(columns={"no_accents": "Player", "2019-20": "Salary"})
+df = create_base_df(season_year=2023)
+df = df.rename(columns={"no_accents": "Player", "2023-24": "Salary"})
 df_two_col = df[['Player', 'Salary']]
 
 empty_df = pd.DataFrame(columns=['Player', 'Salary'])
