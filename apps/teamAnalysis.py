@@ -40,7 +40,7 @@ layout = html.Div([
             dcc.Dropdown(
                 id='league-picker',
                 options=[
-                    {'label': 'Javale McGeenomes', 'value': '22328189'},
+                    {'label': 'Et Toi, Monsieur Wembanyama?', 'value': '1661951033'},
                     {'label': 'Losses Pool', 'value': '1566531'}
                 ],
                 value='22328189'
@@ -93,9 +93,9 @@ layout = html.Div([
      Input('league-picker', 'value')])
 def call_hidden_data(last_n_days_team_analysis, league_id):
     if last_n_days_team_analysis == "season":
-        hidden_df_team = league_analysis(year=2020, leagueid=int(league_id))
+        hidden_df_team = league_analysis(year=2024, leagueid=int(league_id))
     else:
-        hidden_df_team = league_analysis(year=2020, leagueid=int(league_id), last_n_days=int(last_n_days_team_analysis))
+        hidden_df_team = league_analysis(year=2024, leagueid=int(league_id), last_n_days=int(last_n_days_team_analysis))
     return hidden_df_team.to_json(orient='split')
 
 # @app.callback(

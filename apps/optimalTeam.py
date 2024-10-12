@@ -13,11 +13,12 @@ from scripts.calculateOptimalTeam import calculate_optimal_team
 from app import app
 
 
-df = create_base_df(season_year=2020)
-#df['salary'] = df['2019-20']
-player_list = espn_fantasy_pull(year = 2020, leagueid=22328189)
-team_dict = espn_team_pull(year = 2020, leagueid=22328189)
+df = create_base_df(season_year=2024)
+#df['salary'] = df['2023-24']
+player_list = espn_fantasy_pull(year = 2024, leagueid=1661951033)
+team_dict = espn_team_pull(year = 2024, leagueid=1661951033)
 team_list = list(team_dict.keys())
+
 
 def normalize(array):
     return np.asarray([float(i)/np.max(array) for i in array])
@@ -332,12 +333,13 @@ def create_solution_table(fg_value, ft_value, three_point_value, rebs, asts, stl
     tos, ppg, checklist_options, fleague, number_players, exclusion_list, inclusion_list,
     fantasy_team, calculation_clicks, last_n_days_data):
     print(calculation_clicks)
+    print(last_n_days_data)
     if exclusion_list is None:
         exclusion_list = []
     if inclusion_list is None:
         inclusion_list = []
     if fleague:
-        fantasy_players = espn_fantasy_pull(year = 2020, leagueid=22328189)
+        fantasy_players = espn_fantasy_pull(year = 2024, leagueid=1661951033)
         if fantasy_team:
             exclusion_list += list(set(fantasy_players) - set(team_dict[fantasy_team]))
         else:
@@ -354,8 +356,8 @@ def create_solution_table(fg_value, ft_value, three_point_value, rebs, asts, stl
         'ppg': float(ppg[:-1])
     }
 
-    temp_table_col_list = ['name', 'field_goal_percentage', 'free_throw_percentage', 'made_three_point_field_goals',
-        'rebounds', 'assists', 'steals', 'blocks', 'turnovers', 'ppg', 'salary', 'raw_score']
+    temp_table_col_list = ['name', 'positions', 'field_goal_percentage', 'free_throw_percentage', 'made_three_point_field_goals',
+        'rebounds', 'assists', 'steals', 'blocks', 'turnovers', 'ppg', 'salary', 'avg_fantasy_pts']
     temp_table_cols = [{'name': i, 'id': i} for i in temp_table_col_list]
 
     if (calculation_clicks is None) or (number_players is None):
@@ -373,30 +375,46 @@ def create_solution_table(fg_value, ft_value, three_point_value, rebs, asts, stl
         if last_n_days_data is None:
             temp_table = df
         else:
+            print("Reading hidden data")
             temp_table = pd.read_json(last_n_days_data, orient='split')
         temp_table.loc[temp_table['attempted_field_goals'] <= np.percentile(temp_table['attempted_field_goals'], 25), ['field_goal_percentage']] = 0
         temp_table.loc[temp_table['attempted_free_throws'] <= np.percentile(temp_table['attempted_free_throws'], 25), ['free_throw_percentage']] = 0
         temp_table['ppg'] = temp_table.ppg.round(1)
-        temp_table['raw_score'] = 0
-        for option in checklist_options:
-            if option == 'turnovers':
-                temp_table['raw_score'] -= normalize(temp_table[option])*weight_dict[option]
-            else:
-                temp_table['raw_score'] += normalize(temp_table[option])*weight_dict[option]
-        scores = temp_table['raw_score'].to_numpy()
-        sals = temp_table['2019-20'].replace('[\$,]', '', regex=True).astype(float).to_numpy()
+        # temp_table['raw_score'] = 0
+
+        # for option in checklist_options:
+        #     if option == 'turnovers':
+        #         temp_table['raw_score'] -= normalize(temp_table[option])*weight_dict[option]
+        #     else:
+        #         temp_table['raw_score'] += normalize(temp_table[option])*weight_dict[option]
+        scores = temp_table['avg_fantasy_pts'].to_numpy()
+        sals = temp_table['2024-25'].replace('[\$,]', '', regex=True).astype(float).to_numpy()
         names = temp_table['no_accents'].to_numpy()
-        optimal_team = calculate_optimal_team(slots=int(number_players), max_cost=1100,
+        # Wemby 1878, ja 1659, rest 2000
+        optimal_team = calculate_optimal_team(slots=int(number_players), max_cost=2300,
             exclusion_list=exclusion_list, inclusion_list=list(set(inclusion_list) - set(exclusion_list)),
             scores=scores, sals=sals, names=names)
         optimal_team_table = temp_table[temp_table['no_accents'].isin(optimal_team)]
-        optimal_team_table = optimal_team_table.rename(columns={"2019-20": "salary"})
-        optimal_team_table = optimal_team_table[['name', 'field_goal_percentage', 'free_throw_percentage', 'made_three_point_field_goals',
-            'rebounds', 'assists', 'steals', 'blocks', 'turnovers', 'ppg', 'salary', 'raw_score']]
-        optimal_team_table['raw_score'] = optimal_team_table['raw_score'].round(2)
-        top_n_score = (optimal_team_table.nlargest(10, 'raw_score'))['raw_score'].sum()
+        # while len(set(['C', 'PF', 'SF', 'PG', 'SG']) - set(optimal_team_table['positions'].tolist())) > 0:
+        #     # Recalculate to get all positions
+        #     player_to_exclude = optimal_team_table.loc[optimal_team_table['raw_score'] == optimal_team_table['raw_score'].min()]['no_accents'].tolist()
+        #     exclusion_list += player_to_exclude
+        #     exclusion_list = list(set(exclusion_list))
+        #     print("Cant find all positions, excluding "+player_to_exclude[0])
+        #     print("Running optimal team again...")
+        #     optimal_team = calculate_optimal_team(slots=int(number_players), max_cost=1450,
+        #         exclusion_list=exclusion_list, inclusion_list=list(set(inclusion_list) - set(exclusion_list)),
+        #         scores=scores, sals=sals, names=names)
+        #     optimal_team_table = temp_table[temp_table['no_accents'].isin(optimal_team)]
+        optimal_team_table = optimal_team_table.rename(columns={"2024-25": "salary"})
+        optimal_team_table = optimal_team_table[['name', 'positions', 'field_goal_percentage', 'free_throw_percentage', 'made_three_point_field_goals',
+            'rebounds', 'assists', 'steals', 'blocks', 'turnovers', 'ppg', 'salary', 'avg_fantasy_pts']]
+        optimal_team_table['avg_fantasy_pts'] = optimal_team_table['avg_fantasy_pts'].round(2)
+        optimal_team_table= optimal_team_table.sort_values(by=['avg_fantasy_pts'], ascending=False)
+        top_n_score = (optimal_team_table.nlargest(10, 'avg_fantasy_pts'))['avg_fantasy_pts'].sum()
         total_row = pd.DataFrame([[
             'Total',
+            '',
             round(optimal_team_table['field_goal_percentage'].mean(),1),
             round(optimal_team_table['free_throw_percentage'].mean(),1),
             optimal_team_table['made_three_point_field_goals'].sum(),
@@ -407,11 +425,11 @@ def create_solution_table(fg_value, ft_value, three_point_value, rebs, asts, stl
             optimal_team_table['turnovers'].sum(),
             round(optimal_team_table['ppg'].mean(),1),
             '${:,.2f}'.format(optimal_team_table['salary'].str[1:].str.replace(",", "").astype(float).sum()),
-            round(optimal_team_table['raw_score'].sum(),2)
+            round(optimal_team_table['avg_fantasy_pts'].sum(),2)
         ]],
         columns = [
-            'name', 'field_goal_percentage', 'free_throw_percentage', 'made_three_point_field_goals',
-                'rebounds', 'assists', 'steals', 'blocks', 'turnovers', 'ppg', 'salary', 'raw_score'
+            'name', 'positions', 'field_goal_percentage', 'free_throw_percentage', 'made_three_point_field_goals',
+                'rebounds', 'assists', 'steals', 'blocks', 'turnovers', 'ppg', 'salary', 'avg_fantasy_pts'
         ])
         optimal_team_table = pd.concat([optimal_team_table, total_row])
         return html.Div([
@@ -441,8 +459,9 @@ def write_comparison_text(solutions_table, current_score, projected_score, fanta
     if calculation_clicks == 0:
         return ""
     elif solutions_table and (current_score is not None):
+        print(current_score)
         current_score_df = pd.read_json(current_score, orient='split')
-        current_roster = current_score_df.loc[current_score_df['no_accents'].isin(team_dict[fantasy_team]), 'raw_score']
+        current_roster = current_score_df.loc[current_score_df['no_accents'].isin(team_dict[fantasy_team]), 'avg_fantasy_pts']
         raw_score = round((current_roster.nlargest(10)).sum(), 2)
         return "Your team's projected raw score is " + str(round(projected_score, 2)) + \
             ". Your team's current raw score is " + str(raw_score)

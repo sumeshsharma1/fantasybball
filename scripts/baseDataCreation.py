@@ -3,8 +3,7 @@ def create_base_df(season_year):
     import pandas as pd
     import unicodedata
 
-    advanced_stats = client.players_advanced_season_totals(season_end_year=2020)
-    season_stats = client.players_season_totals(season_end_year=2020)
+    season_stats = client.players_season_totals(season_end_year=season_year)
     total_df = pd.DataFrame(season_stats)
 
     total_df['positions'], total_df['team'] = total_df['positions'].astype(str), total_df['team'].astype(str)
@@ -19,6 +18,25 @@ def create_base_df(season_year):
                 "_": ' '}
 
     total_df = total_df.replace(positions).replace(team_sub, regex=True)
+    total_df['no_accents'] = total_df['name'].apply(
+        lambda x: unicodedata.normalize('NFD', x).encode('ascii', 'ignore').decode('UTF-8').replace(".", ""))
+
+    total_df = total_df.groupby(['slug', 'name', 'no_accents'], as_index=False).agg({'made_three_point_field_goals':'sum',
+                                                                                   'attempted_three_point_field_goals': 'sum',
+                                                                                   'made_field_goals': 'sum',
+                                                                                   'made_free_throws': 'sum',
+                                                                                   'games_played': 'sum',
+                                                                                   'attempted_field_goals':'sum',
+                                                                                   'attempted_free_throws':'sum',
+                                                                                   'offensive_rebounds':'sum',
+                                                                                   'defensive_rebounds': 'sum',
+                                                                                   'assists':'sum',
+                                                                                   'blocks':'sum',
+                                                                                   'steals':'sum',
+                                                                                   'turnovers':'sum',
+                                                                                   'team': 'last',
+                                                                                   'positions': 'last',
+                                                                                   'games_played': 'sum'}).drop_duplicates()
 
     total_df = total_df.assign(
         field_goal_percentage=(total_df['made_field_goals'] * 100 / total_df['attempted_field_goals']).round(1),
@@ -27,37 +45,29 @@ def create_base_df(season_year):
         free_throw_percentage=(total_df['made_free_throws'] * 100 / total_df['attempted_free_throws']).round(1),
         rebounds=total_df['offensive_rebounds'] + total_df['defensive_rebounds']).fillna(0)
 
-    total_df['no_accents'] = total_df['name'].apply(
-        lambda x: unicodedata.normalize('NFD', x).encode('ascii', 'ignore').decode('UTF-8').replace(".", ""))
-    total_df.no_accents[total_df.no_accents == 'Taurean Waller-Prince'] = 'Taurean Prince'
-
-    total_df = total_df.groupby(['name', 'slug', 'no_accents'], as_index=False).agg({'field_goal_percentage':'mean',
-                                                                                   'free_throw_percentage':'mean',
-                                                                                   'made_three_point_field_goals':'sum',
-                                                                                   'made_field_goals': 'sum',
-                                                                                   'made_free_throws': 'sum',
-                                                                                   'games_played': 'sum',
-                                                                                   'attempted_field_goals':'sum',
-                                                                                   'attempted_free_throws':'sum',
-                                                                                   'rebounds':'sum',
-                                                                                   'assists':'sum',
-                                                                                   'blocks':'sum',
-                                                                                   'steals':'sum',
-                                                                                   'turnovers':'sum',
-                                                                                   'team': 'last'}).drop_duplicates()
 
     salaries = pd.read_csv("nba_beta_salary.csv", sep=",", engine='python')
 
-    total_df_with_salaries = total_df.join(salaries[['slug', '2019-20']].set_index('slug'), on='slug').dropna()
+    total_df_with_salaries = total_df.join(salaries[['slug', '2024-25']].set_index('slug'), on='slug').dropna()
 
     total_df_with_salaries = total_df_with_salaries.drop('slug', axis=1)
 
+    total_df_with_salaries['points'] = (2 * (
+            total_df_with_salaries['made_field_goals'] - total_df_with_salaries['made_three_point_field_goals']) + \
+                                 3 * (total_df_with_salaries['made_three_point_field_goals']) +
+                                 total_df_with_salaries['made_free_throws'])
 
     total_df_with_salaries['ppg'] = (2 * (
                 total_df_with_salaries['made_field_goals'] - total_df_with_salaries['made_three_point_field_goals']) + \
                                      3 * (total_df_with_salaries['made_three_point_field_goals']) +
                                      total_df_with_salaries['made_free_throws']) / \
                                     total_df_with_salaries['games_played']
+
+    total_df_with_salaries = total_df_with_salaries.drop_duplicates()
+    total_df_with_salaries['avg_fantasy_pts'] = (2*total_df_with_salaries['made_field_goals'] - total_df_with_salaries['attempted_field_goals'] + \
+        total_df_with_salaries['made_free_throws'] - total_df_with_salaries['attempted_free_throws'] + total_df_with_salaries['made_three_point_field_goals'] + \
+        total_df_with_salaries['rebounds'] + 2*total_df_with_salaries['assists'] + 4*total_df_with_salaries['steals'] + \
+        4*total_df_with_salaries['blocks'] - 2*total_df_with_salaries['turnovers'] + total_df_with_salaries['points'])/total_df_with_salaries['games_played']
 
     return total_df_with_salaries
 
@@ -104,10 +114,27 @@ def create_daily_df(last_days):
 
     df['no_accents'] = df['name'].apply(
         lambda x: unicodedata.normalize('NFD', x).encode('ascii', 'ignore').decode('UTF-8').replace(".", ""))
-    df.no_accents[df.no_accents == 'Taurean Waller-Prince'] = 'Taurean Prince'
+    # df.no_accents[df.no_accents == 'Taurean Waller-Prince'] = 'Taurean Prince'
 
     salaries = pd.read_csv("nba_beta_salary.csv", sep=",", engine='python')
-    total_df_with_salaries = df.join(salaries[['slug', '2019-20']].set_index('slug'), on='slug').dropna()
+    total_df_with_salaries = df.join(salaries[['slug', '2024-25']].set_index('slug'), on='slug').dropna()
     total_df_with_salaries = total_df_with_salaries.drop('slug', axis=1)
+
+    total_df_with_salaries['points'] = (2 * (
+            total_df_with_salaries['made_field_goals'] - total_df_with_salaries['made_three_point_field_goals']) + \
+                                 3 * (total_df_with_salaries['made_three_point_field_goals']) +
+                                 total_df_with_salaries['made_free_throws'])
+
+    total_df_with_salaries['ppg'] = (2 * (
+                total_df_with_salaries['made_field_goals'] - total_df_with_salaries['made_three_point_field_goals']) + \
+                                     3 * (total_df_with_salaries['made_three_point_field_goals']) +
+                                     total_df_with_salaries['made_free_throws']) / \
+                                    total_df_with_salaries['games_played']
+
+    total_df_with_salaries = total_df_with_salaries.drop_duplicates()
+    total_df_with_salaries['avg_fantasy_pts'] = (2*total_df_with_salaries['made_field_goals'] - total_df_with_salaries['attempted_field_goals'] + \
+        total_df_with_salaries['made_free_throws'] - total_df_with_salaries['attempted_free_throws'] + total_df_with_salaries['made_three_point_field_goals'] + \
+        total_df_with_salaries['rebounds'] + 2*total_df_with_salaries['assists'] + 4*total_df_with_salaries['steals'] + \
+        4*total_df_with_salaries['blocks'] - 2*total_df_with_salaries['turnovers'] + total_df_with_salaries['points'])/total_df_with_salaries['games_played']
 
     return total_df_with_salaries
