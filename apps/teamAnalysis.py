@@ -93,9 +93,9 @@ layout = html.Div([
      Input('league-picker', 'value')])
 def call_hidden_data(last_n_days_team_analysis, league_id):
     if last_n_days_team_analysis == "season":
-        hidden_df_team = league_analysis(year=2024, leagueid=int(league_id))
+        hidden_df_team = league_analysis(year=2025, leagueid=int(league_id))
     else:
-        hidden_df_team = league_analysis(year=2024, leagueid=int(league_id), last_n_days=int(last_n_days_team_analysis))
+        hidden_df_team = league_analysis(year=2025, leagueid=int(league_id), last_n_days=int(last_n_days_team_analysis))
     return hidden_df_team.to_json(orient='split')
 
 # @app.callback(

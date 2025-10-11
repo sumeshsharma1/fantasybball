@@ -13,10 +13,10 @@ from scripts.calculateOptimalTeam import calculate_optimal_team
 from app import app
 
 
-df = create_base_df(season_year=2024)
+df = create_base_df(season_year=2025)
 #df['salary'] = df['2023-24']
-player_list = espn_fantasy_pull(year = 2024, leagueid=1661951033)
-team_dict = espn_team_pull(year = 2024, leagueid=1661951033)
+player_list = espn_fantasy_pull(year = 2025, leagueid=1661951033)
+team_dict = espn_team_pull(year = 2025, leagueid=1661951033)
 team_list = list(team_dict.keys())
 
 
@@ -339,7 +339,7 @@ def create_solution_table(fg_value, ft_value, three_point_value, rebs, asts, stl
     if inclusion_list is None:
         inclusion_list = []
     if fleague:
-        fantasy_players = espn_fantasy_pull(year = 2024, leagueid=1661951033)
+        fantasy_players = espn_fantasy_pull(year = 2025, leagueid=1661951033)
         if fantasy_team:
             exclusion_list += list(set(fantasy_players) - set(team_dict[fantasy_team]))
         else:

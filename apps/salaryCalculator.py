@@ -8,7 +8,7 @@ import pandas as pd
 from scripts.baseDataCreation import create_base_df
 from app import app
 
-df = create_base_df(season_year=2024)
+df = create_base_df(season_year=2025)
 df = df.rename(columns={"no_accents": "Player", "2024-25": "Salary"})
 df_two_col = df[['Player', 'Salary']]
 

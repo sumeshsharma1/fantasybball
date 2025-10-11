@@ -8,7 +8,7 @@ import pandas as pd
 from scripts.baseDataCreation import create_base_df
 from app import app
 
-total_df_with_salaries = create_base_df(season_year=2024)
+total_df_with_salaries = create_base_df(season_year=2025)
 #total_df_with_salaries = pd.read_csv('https://raw.githubusercontent.com/sumeshsharma1/fantasybball/master/total_df_with_salaries.csv')
 total_df_with_salaries['2024-25'] = total_df_with_salaries['2024-25'].replace('[\$,]', '', regex=True).astype(float)
 total_df_with_salaries['avg_fantasy_pts'] = total_df_with_salaries['avg_fantasy_pts'].round(2)

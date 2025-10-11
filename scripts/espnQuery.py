@@ -53,12 +53,11 @@ def espn_team_pull(year, leagueid):
     for team in teamdata['teams']:
         teamMap[team['id']] = team['abbrev']
 
-
-
     fullMap = {}
 
     for j in range(len(matchups['teams'])):
         player_list = []
+        player_id = matchups['teams'][j]['id']
         for i in range(len(matchups['teams'][j]['roster']['entries'])):
             player = matchups['teams'][j]['roster']['entries'][i]['playerPoolEntry']['player']['fullName']
             # if player[-3:] in ['Jr.', 'Sr.', 'III']:
@@ -69,6 +68,6 @@ def espn_team_pull(year, leagueid):
             #     player = player
             player = player.replace(".","")
             player_list.append(player)
-        fullMap[teamMap[j+1]] = player_list
+        fullMap[teamMap[player_id]] = player_list
 
     return fullMap
