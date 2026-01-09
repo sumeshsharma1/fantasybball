@@ -14,7 +14,7 @@ future==0.18.2
 gunicorn==19.5.0
 idna==2.7
 itsdangerous==1.1.0
-Jinja2==2.10.3
+Jinja2==2.11.3
 lxml==4.2.5
 MarkupSafe==1.1.1
 numpy==1.18.1
